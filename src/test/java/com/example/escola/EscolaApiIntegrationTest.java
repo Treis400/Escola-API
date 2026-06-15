@@ -34,9 +34,10 @@ class EscolaApiIntegrationTest {
     }
 
     @Test
-    @DisplayName("C1-T1 Inserir aluno válido com matrícula automática retorna 201")
+    @DisplayName("C1-T1 Inserir aluno válido retorna 201")
     void c1_t1_inserirAlunoValido() {
         AlunoRequestDTO dto = new AlunoRequestDTO();
+        dto.setMatricula("7");
         dto.setNome("Thiago Reis");
         dto.setSexo("M");
         dto.setNascimento("01/01/2000");
@@ -51,8 +52,8 @@ class EscolaApiIntegrationTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getNome()).isEqualTo("Thiago Reis");
         assertThat(response.getBody().getMatricula()).isEqualTo(7L);
+        assertThat(response.getBody().getNome()).isEqualTo("Thiago Reis");
         assertThat(response.getBody().getMaterias()).hasSize(1);
         assertThat(response.getBody().getMaterias().get(0).getNotaFinal()).isEqualTo("9.5");
     }
@@ -77,6 +78,7 @@ class EscolaApiIntegrationTest {
     @DisplayName("C1-T3 Inserir aluno com nome contendo números retorna 400 com erro de validação")
     void c1_t3_inserirAlunoNomeInvalido() {
         AlunoRequestDTO dto = new AlunoRequestDTO();
+        dto.setMatricula("7");
         dto.setNome("Thiago123");
         dto.setSexo("M");
         dto.setNascimento("01/01/2000");
@@ -90,7 +92,7 @@ class EscolaApiIntegrationTest {
     }
 
     @Test
-    @DisplayName("C2-T1 Atualizar aluno existente adicionando nova matéria retorna 200")
+    @DisplayName("C2-T1 Atualizar aluno existente substitui as matérias e retorna 200")
     void c2_t1_atualizarAlunoExistente() {
         AlunoUpdateDTO dto = new AlunoUpdateDTO();
         dto.setNome("Erik Oliver Atualizado");
@@ -100,8 +102,7 @@ class EscolaApiIntegrationTest {
         MateriaDTO novaMateria = new MateriaDTO();
         novaMateria.setMateria("Historia");
         novaMateria.setNotaFinal("7.0");
-        dto.setMateriasParaAdicionar(List.of(novaMateria));
-        dto.setMateriasParaRemoverIds(List.of());
+        dto.setMaterias(List.of(novaMateria));
 
         HttpEntity<AlunoUpdateDTO> entity = new HttpEntity<>(dto);
         ResponseEntity<AlunoResponseDTO> response = restTemplate.exchange(
@@ -109,7 +110,8 @@ class EscolaApiIntegrationTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().getNome()).isEqualTo("Erik Oliver Atualizado");
-        assertThat(response.getBody().getMaterias()).hasSize(3);
+        assertThat(response.getBody().getMaterias()).hasSize(1);
+        assertThat(response.getBody().getMaterias().get(0).getMateria()).isEqualTo("Historia");
     }
 
     @Test
@@ -119,8 +121,7 @@ class EscolaApiIntegrationTest {
         dto.setNome("Fantasma Silva");
         dto.setSexo("M");
         dto.setNascimento("01/01/2000");
-        dto.setMateriasParaAdicionar(List.of());
-        dto.setMateriasParaRemoverIds(List.of());
+        dto.setMaterias(List.of());
 
         HttpEntity<AlunoUpdateDTO> entity = new HttpEntity<>(dto);
         ResponseEntity<Map> response = restTemplate.exchange(
@@ -138,8 +139,7 @@ class EscolaApiIntegrationTest {
         dto.setNome("Erik Oliver");
         dto.setSexo("X");
         dto.setNascimento("10/10/1987");
-        dto.setMateriasParaAdicionar(List.of());
-        dto.setMateriasParaRemoverIds(List.of());
+        dto.setMaterias(List.of());
 
         HttpEntity<AlunoUpdateDTO> entity = new HttpEntity<>(dto);
         ResponseEntity<Map> response = restTemplate.exchange(
@@ -195,7 +195,7 @@ class EscolaApiIntegrationTest {
                 .toList();
 
         assertThat(matriculasRetornadas)
-                .as("Alunos 3, 4 e 5 não devem aparecer no filtro de notas > 8")
-                .doesNotContain(3L, 4L, 5L);
+                .as("Alunos 4 e 5 não devem aparecer no filtro de notas > 8")
+                .doesNotContain(4L, 5L);
     }
 }

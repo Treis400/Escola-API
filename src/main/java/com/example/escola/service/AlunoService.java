@@ -82,6 +82,8 @@ public class AlunoService {
         aluno.setNascimento(nascimento);
 
         aluno.getMaterias().clear();
+        alunoRepository.saveAndFlush(aluno);
+
         for (MateriaDTO m : dto.getMaterias()) {
             AlunoMateria materia = new AlunoMateria();
             materia.setMateria(m.getMateria());
